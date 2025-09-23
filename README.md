@@ -421,5 +421,17 @@ public class ReservationService {
 - 새로운 할인정책(DIscountCondition)이 생기면 해당 도메인 객체에서 변경을 진행하면 됨
     - 할인정책이 추가된다면 findDiscountCondition 메서드를 변경해야함
     절차지향에선 Service, 객체지향에선 DIscountPolicy이 가지고 있었음
+### 객체지향설계에서도 Screening, DIscountPolicy 등 여러 객체를 의존하던데요
+해당 객체가 없다면 절차지향, 객체지향 둘다 문제되지 않나요?
+
+- 여기서 말하는 “의존” 은 해당 도메인 객체들이 변경되었을 때 Service 객체에 영향이 가냐는 의미임
+실제로 calculateDiscount(), isSatifiedBy() 등 도메인 객체 내에 할인정책, 할인금액 계산에 대한 기능변경이 발생하여도 ReservationService는 영향받지 않으므로 의존하지 않는다. 라고 보는 것임
+    - 여기서 객체지향에서 캡슐화가 중요한 이유가 보여지네요.
+
+### 잘보면…
+
+- 이미 위에서 언급한 요구사항과 도메인은 같은 모양이어야 한다가 일치되었음
 
 ## 캡슐화는 왜 할까?
+
+[객체지향설계를 왜 해야하는가?](https://www.notion.so/275973beb62580b89a55df4bc7de869a?pvs=21)
