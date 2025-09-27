@@ -474,3 +474,42 @@ public class ReservationService {
 ### 낮은 결합도 (Low Coupling)
 
 - 예매에 대한 책임을 영화가 갖는다면 영화와 예매의 결합이 생김
+
+  ### 높은 응집도 (High Cohesion)
+
+- 한 요소에 책임들이 얼마나 관련되게 집중되어 있는가?
+
+```java
+class Movie {
+	private DiscountPolicy discountPolicy;
+	public Money calculateFee(...) {
+		if (금액할인조건이라면) {
+			return discountPolicy.calculateAmountDiscount(...);
+		}
+		//else if(새로운 할인조건) 
+		return discountPolicy.calculatePercentDiscount(...);
+	}
+}
+```
+
+```java
+class DiscountPolicy {
+	public Money calculatePercentDiscount(...) {
+		...
+	}
+	public Money calculateAmountDiscount(...) {
+		...
+	}
+}
+```
+
+- 새로운 할인정책(DIscountPolicy)의 추가로 Movie, DiscountPolicy의 코드수정이 발생한다는 것은
+**여러 책임(정책 선택, 분기, 계산 로직)을 뒤섞어** 가지고 있다는 신호
+- 또한 OCP 원칙도 위배함
+    - OCP : 수정엔 닫혀있고, 확장에는 열려있어야 함
+
+## 변경보호패턴
+
+- 변화가 예상되거나 불안정한 지점을 예상하고 그 지점을 추상화 하는 것
+- 위에 예제에서는 DiscountPolicy가 변경보호패턴 대상
+    - 새로운 할인정책이 있을경우 DiscountPolicy는 변화되어야 함
