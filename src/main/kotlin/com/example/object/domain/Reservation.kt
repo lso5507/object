@@ -1,8 +1,8 @@
 package com.example.`object`.domain
 
-class Reservation(
-    private val customer: Customer,
-    private val screening: Screening,
-    private val fee: Money,
-    private val audienceCount: Int
+data class Reservation(
+    val customer: Customer,
+    val screening: Screening,
+    val fee: Money,
+    val audienceCount: Int
 )

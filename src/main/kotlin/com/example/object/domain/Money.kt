@@ -23,6 +23,10 @@ data class Money(private val amount: BigDecimal) {
         return Money(this.amount.multiply(BigDecimal.valueOf(percent)))
     }
 
+    fun times(count: Long): Money {
+        return Money(this.amount.multiply(BigDecimal.valueOf(count)))
+    }
+
     fun isLessThan(other: Money): Boolean {
         return amount < other.amount
     }
