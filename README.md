@@ -517,3 +517,110 @@ class DiscountPolicy {
 
 - 다른 컴포넌트나 서비스가 직접 의존하지 않도록 중재하는 중간 객체에 책임할당
 - 도메인 객체와 데이터베이스 사이의 의존성 제거
+
+## 결합도
+
+- 모듈이 다른 외부모듈에 의존하는 정도
+
+<img width="1560" height="1002" alt="image" src="https://github.com/user-attachments/assets/ea8d3a98-787b-4cd1-aa13-b094108a24f0" />
+
+
+- 자주 변하는 구현 부분이 아닌, 안정적인 추상화 부분에 의존
+
+### 절차지향코드
+
+```java
+public class ReservationService {
+	private Money calculateDiscount(DiscountPolicy policy, Movie movie) {
+	if (policy.isAmountPolicy()) {
+		return Money.wons(policy.getAmount());
+	} else if (policy.isPercentPolicy()) {
+		return movie.getFee().times(policy.getPercent());
+	}
+		return Money.ZERO;
+	}
+}
+public class DiscountPolicy {
+	private Long movieId;
+	private PolicyType policyType;
+	private Long amount;
+	private Double percent;
+	public Long getMovieId() { return movieId; }
+	public void setMovieId(Long movieId) { this.movieId = movieId; }
+	public PolicyType getPolicyType() { return policyType; }
+	public void setPolicyType(PolicyType policyType) { this.policyType = policyType; }
+	public boolean isPercentPolicy() { return this.policyType == PERCENT; }
+	public boolean isAmountPolicy() { return this.policyType == AMOUNT; }
+	public Long getAmount() { return amount; }
+	public Double getPerent() { return percent; }
+	public void setAmount(Long amount) { this.amount = amount; }
+	public void setPercent(Double percent) { this.percent = percent; }
+}
+```
+
+<img width="2012" height="1174" alt="image" src="https://github.com/user-attachments/assets/5c44d8eb-0b0a-46da-bc0d-67aa7111a5e3" />
+
+
+- 자주 변하는 필드는 캡슐화
+- 외부객체가 자주 변하지않는 메소드 시그니쳐에 의존하도록 함
+
+### amount 필드의 타입이 변경된다면?
+
+```java
+public class DiscountPolicy {
+	private Long movieId;
+	private PolicyType policyType;
+	private Double amount;  // Long -> Double
+	private Double percent;
+	public Long getMovieId() { return movieId; }
+	public void setMovieId(Long movieId) { this.movieId = movieId; }
+	public PolicyType getPolicyType() { return policyType; }
+	public void setPolicyType(PolicyType policyType) { this.policyType = policyType; }
+	public boolean isPercentPolicy() { return this.policyType == PERCENT; }
+	public boolean isAmountPolicy() { return this.policyType == AMOUNT; }
+	public Double getAmount() { return amount; } // 메소드 시그니쳐도 변경 됨
+	public Double getPerent() { return percent; }
+	public void setAmount(Long amount) { this.amount = amount; }
+	public void setPercent(Double percent) { this.percent = percent; }
+}
+```
+
+- 그러므로 외부객체가 amount에 대한 타입으로 반환이 되면 높은 결합도가 발생 됨
+→ 변경점이 생기기 떄문
+
+### 객체지향코드
+
+```java
+public class Movie {
+	private DiscountPolicy discountPolicy;
+	public Money calculateFee(Screening screening) {
+		return fee.minus(discountPolicy.calculateDiscount(screening));
+	}
+}
+
+public abstract class DiscountPolicy {
+	private List<DiscountCondition> conditions;
+	public Money calculateDiscount(Screening screening) {
+		for(DiscountCondition each : conditions) {
+			if (each.isSatisfiedBy(screening)) {
+				return getDiscountAmount(screening);
+			}
+}
+	return Money.ZERO;
+}
+	abstract protected Money getDiscountAmount(Screening screening);
+}
+
+public class PercentDiscountPolicy extends DiscountPolicy {
+	private Double percent;
+	protected Money getDiscountAmount(Screening screening) {
+		return screening.getFixedFee().times(percent);
+	}
+}
+```
+
+<img width="1816" height="1214" alt="image" src="https://github.com/user-attachments/assets/d7e82908-2dee-46e9-813c-d25086092ec3" />
+
+- DiscountPolicy.calculateDiscount(Screening) 으로 객체를 반환하는 메소드 시그니처를 만든다면?
+→ Money 라는 VO로 반환되면 되므로 내부 구현코드가 변경되어도 Movie는 변경사항이 없음
+그렇다면 낮은 결합도가 유지가 됨
