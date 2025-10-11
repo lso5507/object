@@ -624,3 +624,68 @@ public class PercentDiscountPolicy extends DiscountPolicy {
 - DiscountPolicy.calculateDiscount(Screening) 으로 객체를 반환하는 메소드 시그니처를 만든다면?
 → Money 라는 VO로 반환되면 되므로 내부 구현코드가 변경되어도 Movie는 변경사항이 없음
 그렇다면 낮은 결합도가 유지가 됨
+
+
+## 타입 캡슐화
+
+- 외부에서 해당 타입을 알 수 없도록 캡슐화 하는 것을 의미
+
+### 타입 캡슐화 되지 않은 코드
+
+```java
+public class Movie{
+	private AmountDiscountPolicy amountDiscountPolicy;
+	private PercentDiscountPolicy percentDiscountPolicy;
+}
+```
+
+- DiscountPolicy의 종류가 변경된다면 Movie의 영향을 끼침
+    - 높은결합도
+
+```java
+public class Movie{
+	private DiscountPolicy discountPolicy;
+}
+public abstract class DiscountPolicy{}
+```
+
+- DIscountPolicy를 추상화(인터페이스) 하여 새로운 DiscountPolicy가 추가되어도 Movie에 영향이 가지않음
+
+## 올바른 설계 평가
+
+1. 같은 역할을 하는 새로운 클래스가 추가된다하여도 기존 코드가 변경되어선 안된다
+    1. OCP
+2. 해당 클래스를 생성할때 가지고 있는 필드를 전부 의미있는 값으로 저장하는가?
+    1. 특정 시점에서만 사용되어 null로 선언되어야하는 필드가 있다면 잘못된 설계
+    → 낮은 응집도 
+
+## 변경된 요구사항
+
+<img width="1558" height="922" alt="image" src="https://github.com/user-attachments/assets/8c1b196a-90a5-4544-b85d-52807758ce92" />
+
+
+- 기존 영화와 할인 정책의 연결은 1:1 이였으나 고객의 요청으로 1:N으로 변경되어야 함
+
+### 객체지향적설계
+
+```java
+
+public class OverlappedDiscountPolicy extends DiscountPolicy {
+	private List<DiscountPolicy> policies = new ArrayList<>();
+	public OverlappedDiscountPolicy(DiscountPolicy... policies) {
+		super((screening) -> true);
+		this.policies = Arrays.asList(policies);
+	}
+	@Override
+	protected Money getDiscountAmount(Screening screening) {
+		Money result = Money.ZERO;
+		for(DiscountPolicy each : policies) {
+			result = result.plus(each.calculateDiscount(screening));
+		}
+		return result;
+	}
+}
+```
+
+- 중복할인이라는 Policy 객체를 만들어 중복할인 기능 구현
+    - 기존 Movie 클래스는 DIscountPolicy를 의존하고 있으므로 코드수정이 발생하지 않음
